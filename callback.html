@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QuickBooks Auth Callback</title>
+  <style>
+    body { font-family: monospace; max-width: 700px; margin: 60px auto; padding: 0 20px; background: #f5f5f5; }
+    h1 { font-size: 18px; }
+    .field { margin: 16px 0; }
+    label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+    .value { background: #fff; border: 1px solid #ddd; padding: 10px 12px; border-radius: 4px; word-break: break-all; font-size: 13px; }
+    .copy-btn { margin-left: 8px; font-size: 11px; padding: 2px 8px; cursor: pointer; }
+    .error { color: red; }
+    .success { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>QuickBooks Authorization</h1>
+  <div id="content"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const realmId = params.get('realmId');
+    const state = params.get('state');
+    const error = params.get('error');
+
+    const el = document.getElementById('content');
+
+    if (error) {
+      el.innerHTML = '<p class="error">Error: ' + error + ' — ' + (params.get('error_description') || '') + '</p>';
+    } else if (code) {
+      function field(label, value) {
+        const id = 'v' + Math.random().toString(36).slice(2);
+        return `<div class="field">
+          <label>${label}</label>
+          <span class="value" id="${id}">${value}</span>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('${value}').then(()=>this.textContent='✓')">copy</button>
+        </div>`;
+      }
+      el.innerHTML =
+        '<p class="success">Authorization successful. Copy values below:</p>' +
+        field('Authorization Code (expires in 10 min)', code) +
+        field('Realm ID (Company ID)', realmId || 'not returned') +
+        (state ? field('State', state) : '');
+    } else {
+      el.innerHTML = '<p>No authorization code found in URL.</p>';
+    }
+  </script>
+</body>
+</html>
